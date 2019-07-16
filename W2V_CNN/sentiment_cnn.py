@@ -106,7 +106,7 @@ def load_data(data_source):
         vocabulary_inv = dict((v, k) for k, v in vocabulary.items())
         vocabulary_inv[0] = "<PAD/>"
     else:
-        x, y, x_test, y_test, vocabulary, vocabulary_inv_list, train_Ini_y, test_Ini_y, noc_len = data_helpers.load_data()
+        x, y, test_x, test_y, vocabulary, vocabulary_inv_list, train_Ini_y, test_Ini_y = data_helpers.load_data()
         vocabulary_inv = {key: value for key, value in enumerate(vocabulary_inv_list)}
         #y = y.argmax(axis=1)
 
@@ -118,11 +118,11 @@ def load_data(data_source):
 
         # Shuffle data
         shuffle_indices = np.random.permutation(np.arange(len(y)))
-        x_train = x[shuffle_indices]
-        y_train = y[shuffle_indices]
+        train_x = x[shuffle_indices]
+        train_y = y[shuffle_indices]
         train_Ini_y = train_Ini_y[shuffle_indices]
 
-    return x_train, y_train, x_test, y_test, vocabulary_inv, train_Ini_y, test_Ini_y, q+1, num_output
+    return train_x, train_y, test_x, test_y, vocabulary_inv, train_Ini_y, test_Ini_y, q+1, num_output
 
 
 # Data Preparation
