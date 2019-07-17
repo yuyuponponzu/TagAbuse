@@ -42,7 +42,7 @@ def load_data_and_labels():
     f_y = open('y.txt', 'rb')
     y = pickle.load(f_y)
 
-    x = [s.strip() for s in x_list]
+    x = [s.split(" ") for s in x_list]
 
     f_test_y_s = open('test_y.txt', 'rb')
     test_y = pickle.load(f_test_y_s)
@@ -53,7 +53,7 @@ def load_data_and_labels():
     f_test_data_s = open('test_data.txt', 'rb')
     test_x_list = pickle.load(f_test_data_s)
 
-    test_x = [test_s.strip() for test_s in test_x_list]
+    test_x = [test_s.split(" ") for test_s in test_x_list]
 
     return [x, y, Ini_y, test_x, test_y, test_Ini_y]
 
@@ -78,6 +78,9 @@ def pad_sentences(sentences, test_sentences, padding_word="<PAD/>"):
         test_num_padding = sequence_length - len(test_sentence)
         test_new_sentence = test_sentence + [padding_word] * test_num_padding
         test_padded_sentences.append(test_new_sentence)
+
+    print(new_sentence[1])
+    print(test_new_sentence[1])
 
     return padded_sentences, test_padded_sentences
 

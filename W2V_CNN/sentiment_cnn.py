@@ -49,7 +49,7 @@ filter_sizes = (3, 8)
 num_filters = 10
 dropout_prob = (0.5, 0.8)
 hidden_dims = 50
-threshold = 50
+threshold = 10
 
 # Training parameters
 batch_size = 32
@@ -222,13 +222,14 @@ for train, test in kfold.split(x_train,cat_y):
     h = str(int(h) + 1)
 
     # Train the model
-    model.fit(x_train[train], y_train[train], batch_size=batch_size, epochs=num_epochs,
+    his = model.fit(x_train[train], y_train[train], batch_size=batch_size, epochs=num_epochs,
     validation_data=(x_train[test], y_train[test]), verbose=0)
     # Test the model with testdata
     scores = model.evaluate(x_test, y_test, verbose=0)
     pred = model.predict(x_test)
     report = classification_report(y_test, (pred>threshold).astype(int))
 
+    np.save('./his_'+h+'.txt', his)
     #log 書き込み
     log.write(h+", scores:"+str(scores[1]*100)+"\n")
     log.write("report:"+report+"\n")
