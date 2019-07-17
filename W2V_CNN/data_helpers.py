@@ -34,13 +34,15 @@ def clean_str(string):
 
 def load_data_and_labels():
     f_data = open('data.txt', 'rb')
-    x = pickle.load(f_data)
+    x_list = pickle.load(f_data)
 
     f_Ini_y = open('Ini_y.txt', 'rb')
     Ini_y = pickle.load(f_Ini_y)
 
     f_y = open('y.txt', 'rb')
     y = pickle.load(f_y)
+
+    x = [s.strip() for s in x_list]
 
     f_test_y_s = open('test_y.txt', 'rb')
     test_y = pickle.load(f_test_y_s)
@@ -49,7 +51,9 @@ def load_data_and_labels():
     test_Ini_y = pickle.load(f_test_Ini_y_s)
 
     f_test_data_s = open('test_data.txt', 'rb')
-    test_x = pickle.load(f_test_data_s)
+    test_x_list = pickle.load(f_test_data_s)
+
+    test_x = [test_s.strip() for test_s in test_x_list]
 
     return [x, y, Ini_y, test_x, test_y, test_Ini_y]
 
@@ -60,7 +64,7 @@ def pad_sentences(sentences, test_sentences, padding_word="<PAD/>"):
     Returns padded sentences.
     """
     sequence_length = max([max(len(x) for x in sentences),max(len(tx) for tx in test_sentences)])
-    
+
     padded_sentences = []
     for i in range(len(sentences)):
         sentence = sentences[i]
