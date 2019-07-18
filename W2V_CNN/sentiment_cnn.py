@@ -288,15 +288,16 @@ for train, test in kfold.split(x_train,cat_y):
 
     x_val = np.stack([np.stack([embedding_weights[word] for word in sentence]) for sentence in x_train[test]])
     reIni_y_val = np.reshape(Ini_y_train[test], (x_val.shape[0], q, embedding_dim))
-    newx_val = np.empty((len(x_val), len(x_val[0])+len(reIni_y_train[0]), embedding_dim))
+    newx_val = np.empty((len(x_val), len(x_val[0])+len(reIni_y_val[0]), embedding_dim))
     for i in range(len(x_train)):
-        newx_val[i] = np.concatenate([x_val[i], reIni_y_train[i]] , axis=0)
+        newx_val[i] = np.concatenate([x_val[i], reIni_y_val[i]] , axis=0)
     x_val = newx_val
+
 
     # Train the model
     gene_sequence = generator_sequence()
     his = model.fit_generator(generator=gene_sequence, batch_size=batch_size, epochs=num_epochs,
-    validation_data=(x_val, y_val), verbose=2)
+    validation_data=(x_val, y_train[test]), verbose=2)
     # Test the model with testdata
     scores = model.evaluate(x_test, y_test, verbose=0)
     pred = model.predict(x_test)
