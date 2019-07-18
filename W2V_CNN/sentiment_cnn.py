@@ -32,6 +32,7 @@ from keras.datasets import imdb
 from keras.preprocessing import sequence
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from keras.utils import Sequence
 
 np.random.seed(0)
 
@@ -65,6 +66,79 @@ context = 10
 
 #
 # ---------------------- Parameters end -----------------------
+
+# ---------------------- Generator start -----------------------
+class generator_sequence(Sequence):
+    """
+    学習中の、バッチ単位でのデータの取得を扱うためのクラス。
+
+    Attributes
+    ----------
+    batch_size : int
+        バッチ単体でのデータ件数。
+    memmap_X : memmap
+        入力データのmemmap配列。
+    memmap_y : memmap
+        教師データのmemmap配列。
+    length : int
+        データのインデックス件数。math.ceil(データ行数 / batch_size)の
+        値が設定される。
+
+    Parameters
+    ----------
+    batch_size : int
+        バッチ単体でのデータ件数。
+    """
+
+    def __init__(self, batch_size):
+        DATA_ROW_NUM = 60000
+
+        self.batch_size = batch_size
+        self.type = type_
+
+    def __getitem__(self, idx):
+        """
+        対象のインデックスの、バッチ単体分のデータを取得する。
+
+        Parameters
+        ----------
+        idx : int
+            取得対象のインデックス番号。
+
+        Returns
+        -------
+        X : memmap
+            対象のインデックスの入力データ。
+        y : memmap
+            対象のインデックスの教師データ。
+        """
+        x_train = np.stack([np.stack([embedding_weights[word] for word in sentence]) for sentence in x_train[train]])
+        reIni_y_train = np.reshape(Ini_y_train[train], (x_train.shape[0], q, embedding_dim))
+        newx_train = np.empty((len(x_train), len(x_train[0])+len(reIni_y_train[0]), embedding_dim))
+        for i in range(len(x_train)):
+            newx_train[i] = np.concatenate([x_train[i], reIni_y_train[i]] , axis=0)
+        x_train = newx_train
+
+        return x_train, y_train[train]
+
+    def __len__(self):
+        """
+        データのインデックス件数を取得する。math.ceil(データ行数 / batch_size)の
+        値が設定される。
+
+        Returns
+        -------
+        length : int
+            データのインデックス件数。
+        """
+        return self.length
+
+# ---------------------- Generator end -----------------------
+
+
+
+
+
 
 #lossfunc All[0]を避けるため
 def lossfunc(y_true, y_pred):
@@ -138,21 +212,12 @@ print("Model type is", model_type)
 if model_type in ["CNN-non-static", "CNN-static"]:
     embedding_weights = train_word2vec(np.vstack((x_train, x_test)), vocabulary_inv, num_features=embedding_dim, min_word_count=min_word_count, context=context)
     if model_type == "CNN-static":
-        x_train = np.stack([np.stack([embedding_weights[word] for word in sentence]) for sentence in x_train])
-        print(x_train.shape)
-        reIni_y_train = np.reshape(Ini_y_train[:], (x_train.shape[0], q, embedding_dim))
-        newx_train = np.empty((len(x_train), len(x_train[0])+len(reIni_y_train[0]), embedding_dim))
-        for i in range(len(x_train)):
-            newx_train[i] = np.concatenate([x_train[i], reIni_y_train[i]] , axis=0)
         x_test = np.stack([np.stack([embedding_weights[word] for word in sentence]) for sentence in x_test])
         reIni_y_test = np.reshape(Ini_y_test[:], (x_test.shape[0], q, embedding_dim))
         newx_test = np.empty((len(x_test), len(x_test[0])+len(reIni_y_test[0]), embedding_dim))
         for i in range(len(x_test)):
             newx_test[i] = np.concatenate([x_test[i], reIni_y_test[i]] , axis=0)
-        x_train = newx_train
         x_test = newx_test
-        print("x_train static shape:", x_train.shape)
-        print("x_test static shape:", x_test.shape)
 
 elif model_type == "CNN-rand":
     embedding_weights = None
@@ -221,9 +286,17 @@ for i in range(len(y_train)):
 for train, test in kfold.split(x_train,cat_y):
     h = str(int(h) + 1)
 
+    x_val = np.stack([np.stack([embedding_weights[word] for word in sentence]) for sentence in x_train[test]])
+    reIni_y_val = np.reshape(Ini_y_train[test], (x_val.shape[0], q, embedding_dim))
+    newx_val = np.empty((len(x_val), len(x_val[0])+len(reIni_y_train[0]), embedding_dim))
+    for i in range(len(x_train)):
+        newx_val[i] = np.concatenate([x_val[i], reIni_y_train[i]] , axis=0)
+    x_val = newx_val
+
     # Train the model
-    his = model.fit(x_train[train], y_train[train], batch_size=batch_size, epochs=num_epochs,
-    validation_data=(x_train[test], y_train[test]), verbose=0)
+    gene_sequence = generator_sequence()
+    his = model.fit_generator(generator=gene_sequence, batch_size=batch_size, epochs=num_epochs,
+    validation_data=(x_val, y_val), verbose=2)
     # Test the model with testdata
     scores = model.evaluate(x_test, y_test, verbose=0)
     pred = model.predict(x_test)
