@@ -5,6 +5,8 @@ and you should use the Google-colaboratory.
 This generates random testdata.
 
 "SVMBaselineDataset" is for "SVM_BASELINE".
+
 This generates each dataset for certain rules.
+
 (example:Each tags have 10 positive posts and 10 negative posts.
 In addition, they have half of those with and without tag changes.)
